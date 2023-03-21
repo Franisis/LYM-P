@@ -1,0 +1,195 @@
+/*
+Gramatica para el Robot:
+Autor: Alejandro Arango
+Modificado por: Silvia Takahashi
+Modificado por: Juan Pablo Morales.
+Agregadas producciones para manejar globos
+Modificado por Silvia Takahashi
+
+
+ **/
+
+
+options 
+{
+  
+	LOOKAHEAD=1; 
+	IGNORE_CASE=true;
+	STATIC = false;
+	
+}
+   
+
+PARSER_BEGIN(Robot)
+
+package uniandes.lym.robot.control;
+
+import uniandes.lym.robot.kernel.*;
+import uniandes.lym.robot.view.Console;
+ 
+import java.awt.Point;
+import java.io.*;
+import java.util.Vector;
+import java.util.LinkedList;
+import java.util.ArrayList;
+
+@SuppressWarnings("serial")
+public class Robot 
+{
+
+
+	private RobotWorldDec world;
+	
+	
+	void setWorld(RobotWorld w) {
+		world = (RobotWorldDec) w;	
+	}
+
+	String salida=new String();
+}
+PARSER_END(Robot)
+
+SKIP:
+{
+	" "
+	|	"\r"
+	|	"\t"
+	| "\n"
+}
+
+TOKEN: /* Nombres de Comandos */
+{
+
+			<ROBOT:  "ROBOT_R">
+		| 	<VARS: "VARS">
+		| 	<PROCS: "PROCS">
+		|   <assign : "assignTo" >
+		|   <goto1 : "goto" >
+	    |   <move: "move" >
+	    |   <turn: "turn" >
+	    |   <face: "face" >
+	    |   <put: "put" >
+	    |   <pick: "pick" >
+	    |   <moveToThe: "moveToThe" >
+	    |   <moveInDir: "moveInDir" >
+	    |   <jumpToThe: "jumpToThe" >
+	    |   <jumpInDir: "jumpInDir" >
+	    |   <VARIABLEDEF: "|" >
+	    |   <nop: "nop" >
+	    
+}
+
+TOKEN:
+{
+		<BALLOONS:  "BALLOONS" >
+		|	<CHIPS:     "CHIPS"  >	
+
+}
+
+
+
+TOKEN :
+{
+		<NUM: (<DIGIT>)+ >
+		|  	<#DIGIT: ["0"-"9"] >
+		| <VARIABLE : ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9"])*>
+        
+}
+
+
+
+	//boolean command(uniandes.lym.robot.view.Console sistema) :
+	boolean command(Console sistema):
+	{	
+		
+		int x,y;
+		salida=new String();	
+	}
+
+	
+	{
+		(		  (
+		   < ROBOT > { salida="Inicio del programa";}(vars())?
+		   < PROCS >procs(){ salida="Proceso completado";}
+		   
+		   
+		)  
+
+		{
+		    try {
+	    			 Thread.sleep(900);
+	    	    } catch (InterruptedException e) {
+	    			        System.err.format("IOException: %s%n", e);
+	    		    }
+	    			 
+			sistema.printOutput(salida);
+			return true;
+		})+
+
+    	| <EOF> {return false;} 
+	}
+
+
+	void vars() :
+	{}
+	{
+	  < VARS >< VARIABLE >(","< VARIABLE >)* ";" { salida="Creacion de variables";}
+	}
+	void procs() :
+	{Token varName;
+	ArrayList<String> funciones = new ArrayList<String>();}
+	{
+	  varName=< VARIABLE> "[" body()"]" { funciones.add(varName.image); }
+	  (varName=< VARIABLE> "[" body()"]" { funciones.add(varName.image); })*
+	{}
+     }
+    void body() :
+    { Token newparam;
+      ArrayList<String> parametros = new ArrayList<String>();}
+    {
+		< VARIABLEDEF >(newparam=< VARIABLE>{parametros.add(newparam.image);})? 
+		("," newparam=< VARIABLE>{parametros.add(newparam.image);})*
+		< VARIABLEDEF > { salida="Parametros del proceso";}
+		(goto1())*
+		/*
+		| move()*
+		| turn()*
+		| face()*
+		| put()*
+		| pick()*
+		| moveToThe()*
+		| moveInDir()*
+		| jumpToThe()*
+		| jumpInDir()*
+		| not()*
+		*/ 
+    }
+    void goto1():
+    { int x,y ;}
+    {
+		< goto1 >":" x=num()","y=num()
+		{world.setPostion(x,y);salida="Comando movimiento" ;}
+    }
+    
+
+    int num() throws Error:
+     {
+		int total=1;
+		
+      }
+     {
+		< NUM >
+		{
+		  try {
+				total= Integer.parseInt(token.image);
+		    }
+		  catch(NumberFormatException ee)
+		  {
+			throw new Error ( "Number out of bounds: "+token.image+ " !!" );
+		    }
+		  return total;
+		}
+       } 
+       
+	  
+		
