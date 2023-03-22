@@ -191,6 +191,19 @@ TOKEN :
 		  return total;
 		}
        } 
-       
+
+
+	void moveToThe()
+	{
+	  int x = 1
+	  TOKEN D;
+	}
+	{
+	  <moveToThe>":" x=num()","D= < VARIABLE > ;
+	  {
+	    world.changeFacing
+	  }
+	}
+	
 	  
 		

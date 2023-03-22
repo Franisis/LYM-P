@@ -191,6 +191,41 @@ TOKEN :
 		  return total;
 		}
        } 
-       
+
+
+	void moveToThe()
+	{
+	  int x = 1
+	  TOKEN d;
+	}
+	{
+	  <moveToThe>":" x=num()","d= < VARIABLE > ;
+	  {
+	    if (d.image.equals("right"))
+	    {
+			world.turnRight();
+			world.moveForward(x);
+	    }
+	    else if (d.image.equals("left"))
+	    {
+			world.turnRight();
+			world.turnRight();
+			world.turnRight();
+			world.moveForward(x);
+	    }
+	    else if (d.image.equals("back"))
+	    {
+			world.turnRight();
+			world.turnRight();
+			world.moveForward(x);
+	    }
+
+		else if (d.image.equals("front"))
+	    {
+			world.moveForward(x);
+	    }
+	  }
+	}
+	
 	  
 		

@@ -624,4 +624,17 @@ public class RobotWorld {
 			this.facing = NORTH;
 		inform();
 	}
+	
+	public void changefacing(String orientation){
+        if(orientation.equals("north") )
+            this.facing = NORTH;
+        else if(orientation.equals("west"))
+            this.facing = WEST;
+        else if(orientation.equals("east"))
+            this.facing = EAST;
+        else if(orientation.equals("south"))
+            this.facing = SOUTH;
+
+        inform();
+    }
 }
