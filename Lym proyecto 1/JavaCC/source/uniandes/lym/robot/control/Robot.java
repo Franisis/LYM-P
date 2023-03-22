@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.Vector;
 import java.util.LinkedList;
 import java.util.ArrayList;
-
+import java.util.HashMap;
 @SuppressWarnings("serial")
 public class Robot implements RobotConstants {
 
@@ -97,6 +97,8 @@ public class Robot implements RobotConstants {
   final public void procs() throws ParseException {
          Token varName;
         ArrayList<String> funciones = new ArrayList<String>();
+        HashMap<String, String> cuerpofunciones = new HashMap<String, String>();
+        Token cuerpo;
     varName = jj_consume_token(VARIABLE);
     jj_consume_token(28);
     body();
@@ -123,7 +125,9 @@ public class Robot implements RobotConstants {
 
   final public void body() throws ParseException {
       Token newparam;
+      Token cuerpo;
       ArrayList<String> parametros = new ArrayList<String>();
+      HashMap<String, String> cuerpofunciones = new HashMap<String, String>();
     jj_consume_token(VARIABLEDEF);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case VARIABLE:
@@ -154,13 +158,41 @@ public class Robot implements RobotConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case goto1:
+      case move:
+      case turn:
+      case face:
+      case put:
+      case pick:
         ;
         break;
       default:
         jj_la1[7] = jj_gen;
         break label_5;
       }
-      goto1();
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case goto1:
+        goto1();
+        break;
+      case move:
+        move();
+        break;
+      case face:
+        face();
+        break;
+      case turn:
+        turn();
+        break;
+      case put:
+        put();
+        break;
+      case pick:
+        pick();
+        break;
+      default:
+        jj_la1[8] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
     }
   }
 
@@ -171,7 +203,334 @@ public class Robot implements RobotConstants {
     x = num();
     jj_consume_token(26);
     y = num();
-                 world.setPostion(x,y);salida="Comando movimiento" ;
+    jj_consume_token(27);
+                 world.setPostion(x,y);salida="Comando cambio posicion" ;
+  }
+
+  final public void move() throws ParseException {
+      int n;
+    jj_consume_token(move);
+    jj_consume_token(30);
+    n = num();
+    jj_consume_token(27);
+                 world.moveForward(n,false);salida="Comando de mover hacia adelante";
+  }
+
+  final public void turn() throws ParseException {
+      Token direction;
+      String dirc;
+    jj_consume_token(turn);
+    jj_consume_token(30);
+    direction = jj_consume_token(VARIABLE);
+    jj_consume_token(27);
+        salida=direction.image;
+        if (direction.image.equals( "right"))
+        {
+
+          world.turnRight();
+          salida= "se movio a la derecha";
+         }
+         else if (direction.image.equals( "left"))
+         {
+                        world.turnRight();
+                        world.turnRight();
+                        world.turnRight();
+                        salida= "se movio a la izquierda";
+           }
+         else if (direction.image.equals( "around"))
+         {
+                        world.turnRight();
+                        world.turnRight();
+                        salida= "se movio alrededor";
+           }
+         else {
+           {if (true) throw new Error ( "Direccion incorrecta" +direction.image);}
+           }
+  }
+
+  final public void face() throws ParseException {
+      Token orientation;
+    jj_consume_token(face);
+    jj_consume_token(30);
+    orientation = jj_consume_token(VARIABLE);
+    jj_consume_token(27);
+        try {
+                        world.changefacing(orientation.image);
+
+          }
+        catch(NumberFormatException ee)
+                  {
+                        {if (true) throw new Error ( "Orientacion incorrecta" );}
+
+                    }
+  }
+
+  final public void put() throws ParseException {
+      int n;
+      Token object;
+    jj_consume_token(put);
+    jj_consume_token(30);
+    n = num();
+    jj_consume_token(26);
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case BALLOONS:
+      object = jj_consume_token(BALLOONS);
+      break;
+    case CHIPS:
+      object = jj_consume_token(CHIPS);
+      break;
+    default:
+      jj_la1[9] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    jj_consume_token(27);
+                  if (object.image.equals("Balloons"))
+                  {
+                    for ( int i=0; i<n;i++)
+                        {
+                         world.putBalloon();}
+                    }
+                  else if (object.image.equals("Chips"))
+                  {
+                    for ( int i=0; i<n;i++)
+                        {
+                         world.putChip();}
+                    }
+                  else {
+                        {if (true) throw new Error ( "Objeto incorrecto" );}
+                    }
+  }
+
+  final public void pick() throws ParseException {
+      int n;
+      Token object;
+    jj_consume_token(pick);
+    jj_consume_token(30);
+    n = num();
+    jj_consume_token(26);
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case BALLOONS:
+      object = jj_consume_token(BALLOONS);
+      break;
+    case CHIPS:
+      object = jj_consume_token(CHIPS);
+      break;
+    default:
+      jj_la1[10] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
+    jj_consume_token(27);
+                  if (object.image.equals("Balloons"))
+                  {
+                    for ( int i=0; i<n;i++)
+                        {
+                         world.pickupBalloon();}
+                    }
+                  else if (object.image.equals("Chips"))
+                  {
+                    for ( int i=0; i<n;i++)
+                        {
+                         world.pickupChip();}
+                    }
+                  else {
+                        {if (true) throw new Error ( "Objeto incorrecto" );}
+                    }
+  }
+
+  final public void jumpToThe() throws ParseException, Error {
+          int x ;
+          Token d;
+    jj_consume_token(jumpToThe);
+    jj_consume_token(30);
+    x = num();
+    jj_consume_token(26);
+    d = jj_consume_token(VARIABLE);
+    jj_consume_token(27);
+            if (d.image.equals("right"))
+            {
+                        world.turnRight();
+                        world.moveForward(x, true);
+            }
+            else if (d.image.equals("left"))
+            {
+                        world.turnRight();
+                        world.turnRight();
+                        world.turnRight();
+                        world.moveForward(x, true);
+            }
+            else if (d.image.equals("back"))
+            {
+                        world.turnRight();
+                        world.turnRight();
+                        world.moveForward(x , true);
+            }
+
+                else if (d.image.equals("front"))
+            {
+                        world.moveForward(x, true);
+                }
+                else
+                {
+                        {if (true) throw new Error("Orientation does not exist!");}
+                }
+  }
+
+  final public void moveInDir() throws ParseException, Error {
+         Token direct;
+         int n;
+    jj_consume_token(moveInDir);
+    jj_consume_token(30);
+    n = num();
+    jj_consume_token(26);
+    direct = jj_consume_token(VARIABLE);
+    jj_consume_token(27);
+             if (direct.image.equals("North"))
+             {
+                 if(world.getFacing() == 0)
+                 {
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 1)
+                 {
+                   world.turnRight();
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 2)
+                 {
+                   world.turnRight();
+                   world.turnRight();
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 3)
+                 {
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+
+
+             }
+             else if (direct.image.equals("South"))
+             {
+                 if(world.getFacing() == 0)
+                 {
+                   world.turnRight();
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 1)
+                 {
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 2)
+                 {
+                   world.turnRight();
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 3)
+                 {
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+             }
+             else if (direct.image.equals("West"))
+             {
+                 if(world.getFacing() == 0)
+                 {
+                        world.turnRight();
+                        world.turnRight();
+                        world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 1)
+                 {
+                   world.turnRight();
+
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 2)
+                 {
+                   world.turnRight();
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 3)
+                 {
+                   world.moveForward(n,false);
+                 }
+             }
+             else if (direct.image.equals("East"))
+             {
+                 if(world.getFacing() == 0)
+                 {
+                        world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 1)
+                 {
+                   world.turnRight();
+                   world.turnRight();
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 2)
+                 {
+                   world.moveForward(n,false);
+                 }
+                 else if(world.getFacing() == 3)
+                 {
+                   world.turnRight();
+                   world.turnRight();
+                   world.moveForward(n,false);
+                 }
+
+             }
+             else
+                {
+                  {if (true) throw new Error("Cardinal direction does not exist!");}
+                }
+  }
+
+  final public void moveToThe() throws ParseException, Error {
+          int x ;
+          Token d;
+    jj_consume_token(moveToThe);
+    jj_consume_token(30);
+    x = num();
+    jj_consume_token(26);
+    d = jj_consume_token(VARIABLE);
+    jj_consume_token(27);
+            if (d.image.equals("right"))
+            {
+                        world.turnRight();
+                        world.moveForward(x, false);
+            }
+            else if (d.image.equals("left"))
+            {
+                        world.turnRight();
+                        world.turnRight();
+                        world.turnRight();
+                        world.moveForward(x, false);
+            }
+            else if (d.image.equals("back"))
+            {
+                        world.turnRight();
+                        world.turnRight();
+                        world.moveForward(x , false);
+            }
+
+                else if (d.image.equals("front"))
+            {
+                        world.moveForward(x, false);
+                }
+                else
+                {
+                        {if (true) throw new Error("Orientation does not exist!");}
+                }
   }
 
   final public int num() throws ParseException, Error {
@@ -197,13 +556,13 @@ public class Robot implements RobotConstants {
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[8];
+  final private int[] jj_la1 = new int[11];
   static private int[] jj_la1_0;
   static {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x40,0x20,0x21,0x4000000,0x2000000,0x2000000,0x4000000,0x200,};
+      jj_la1_0 = new int[] {0x40,0x20,0x21,0x4000000,0x2000000,0x2000000,0x4000000,0x7e00,0x7e00,0x600000,0x600000,};
    }
 
   /** Constructor with InputStream. */
@@ -217,7 +576,7 @@ public class Robot implements RobotConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -231,7 +590,7 @@ public class Robot implements RobotConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -241,7 +600,7 @@ public class Robot implements RobotConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -251,7 +610,7 @@ public class Robot implements RobotConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -260,7 +619,7 @@ public class Robot implements RobotConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -269,7 +628,7 @@ public class Robot implements RobotConstants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 8; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 11; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -325,7 +684,7 @@ public class Robot implements RobotConstants {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 11; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

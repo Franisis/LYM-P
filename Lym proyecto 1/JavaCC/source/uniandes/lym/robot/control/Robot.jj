@@ -32,7 +32,7 @@ import java.io.*;
 import java.util.Vector;
 import java.util.LinkedList;
 import java.util.ArrayList;
-
+import java.util.HashMap; 
 @SuppressWarnings("serial")
 public class Robot 
 {
@@ -108,7 +108,8 @@ TOKEN :
 
 	
 	{
-		(		  (
+		(
+		  (
 		   < ROBOT > { salida="Inicio del programa";}(vars())?
 		   < PROCS >procs(){ salida="Proceso completado";}
 		   
@@ -137,7 +138,9 @@ TOKEN :
 	}
 	void procs() :
 	{Token varName;
-	ArrayList<String> funciones = new ArrayList<String>();}
+	ArrayList<String> funciones = new ArrayList<String>();
+	HashMap<String, String> cuerpofunciones = new HashMap<String, String>();
+	Token cuerpo;}
 	{
 	  varName=< VARIABLE> "[" body()"]" { funciones.add(varName.image); }
 	  (varName=< VARIABLE> "[" body()"]" { funciones.add(varName.image); })*
@@ -145,17 +148,17 @@ TOKEN :
      }
     void body() :
     { Token newparam;
-      ArrayList<String> parametros = new ArrayList<String>();}
+      Token cuerpo;
+      ArrayList<String> parametros = new ArrayList<String>();
+      HashMap<String, String> cuerpofunciones = new HashMap<String, String>();}
     {
+		
 		< VARIABLEDEF >(newparam=< VARIABLE>{parametros.add(newparam.image);})? 
 		("," newparam=< VARIABLE>{parametros.add(newparam.image);})*
 		< VARIABLEDEF > { salida="Parametros del proceso";}
-		(goto1())*
+		((goto1())|(move())|(face())
+		|turn()| put()| pick())*
 		/*
-		| move()*
-		| turn()*
-		| face()*
-		| put()*
 		| pick()*
 		| moveToThe()*
 		| moveInDir()*
@@ -164,14 +167,312 @@ TOKEN :
 		| not()*
 		*/ 
     }
-    
     void goto1():
     { int x,y ;}
     {
-		< goto1 >":" x=num()","y=num()
-		{world.setPostion(x,y);salida="Comando movimiento" ;}
+		< goto1 >":" x=num()","y=num()";"
+		{world.setPostion(x,y);salida="Comando cambio posicion" ;}
+    }
+    void move():
+    { int n;}
+    {
+		< move >":" n=num()";"
+		{world.moveForward(n,false);salida="Comando de mover hacia adelante";}
+    }
+    void turn():
+    { Token direction;
+      String dirc;}
+    {
+      < turn >":"direction= < VARIABLE >";"
+      {
+        salida=direction.image;
+        if (direction.image.equals( "right"))
+        {
+          
+          world.turnRight();
+          salida= "se movio a la derecha";
+         }
+         else if (direction.image.equals( "left"))
+         {
+			world.turnRight();
+			world.turnRight();
+			world.turnRight();
+			salida= "se movio a la izquierda";
+           }
+         else if (direction.image.equals( "around"))
+         {
+			world.turnRight();
+			world.turnRight();
+			salida= "se movio alrededor";
+           }
+         else {
+           throw new Error ( "Direccion incorrecta" +direction.image);
+           }  
+       }
     }
     
+    void face():
+    { Token orientation;}
+    {
+      < face >":"orientation= < VARIABLE >";"
+      {
+        try {
+			world.changefacing(orientation.image);
+
+          }
+        catch(NumberFormatException ee)
+		  {
+			throw new Error ( "Orientacion incorrecta" );
+			
+		    }  
+          
+       }
+    }
+    void put() :
+    { int n;
+      Token object;}
+    {
+		< put >":"	n = num()","   (object=< BALLOONS >|object=< CHIPS >)";"
+		{
+		  if (object.image.equals("Balloons"))
+		  {
+		    for ( int i=0; i<n;i++)
+			{
+			 world.putBalloon();}
+		    }
+		  else if (object.image.equals("Chips"))
+		  {
+		    for ( int i=0; i<n;i++)
+			{
+			 world.putChip();}
+		    }
+		  else {
+			throw new Error ( "Objeto incorrecto" );
+		    }  
+		}
+      }
+    void pick() :
+    { int n;
+      Token object;}
+    {
+		< pick >":"	n = num()","   (object=< BALLOONS >|object=< CHIPS >)";"
+		{
+		  if (object.image.equals("Balloons"))
+		  {
+		    for ( int i=0; i<n;i++)
+			{
+			 world.pickupBalloon();}
+		    }
+		  else if (object.image.equals("Chips"))
+		  {
+		    for ( int i=0; i<n;i++)
+			{
+			 world.pickupChip();}
+		    }
+		  else {
+			throw new Error ( "Objeto incorrecto" );
+		    }  
+		}
+      }
+void jumpToThe()throws Error:
+	{
+	  int x ;
+	  Token d;
+	  }
+	{
+	  <jumpToThe >":" x=num()","d= < VARIABLE > ";"
+	  {
+	    if (d.image.equals("right"))
+	    {
+			world.turnRight();
+			world.moveForward(x, true);
+	    }
+	    else if (d.image.equals("left"))
+	    {
+			world.turnRight();
+			world.turnRight();
+			world.turnRight();
+			world.moveForward(x, true);
+	    }
+	    else if (d.image.equals("back"))
+	    {
+			world.turnRight();
+			world.turnRight();
+			world.moveForward(x , true);
+	    }
+
+		else if (d.image.equals("front"))
+	    {
+			world.moveForward(x, true);
+	  	}
+	  	else
+	  	{
+	  	  	throw new Error("Orientation does not exist!");
+	  	}
+	  }
+	 
+	}
+	
+
+	void moveInDir() throws Error:
+	{
+	 Token direct;
+	 int n;
+	 }
+	 {
+	   < moveInDir >":"n=num()"," direct = < VARIABLE> ";"
+	   {
+	     if (direct.image.equals("North"))
+	     {
+	      	 if(world.getFacing() == 0)
+	      	 {
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 1)
+	      	 {
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 2)
+	      	 {
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 3)
+	      	 {
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	
+	      	 
+	     }
+	     else if (direct.image.equals("South"))
+	     {
+	      	 if(world.getFacing() == 0)
+	      	 {
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 1)
+	      	 {
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 2)
+	      	 {
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 3)
+	      	 {
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }	 
+	     }
+	     else if (direct.image.equals("West"))
+	     {
+	      	 if(world.getFacing() == 0)
+	      	 {
+	      	   	world.turnRight();
+	      	   	world.turnRight();
+	      	   	world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 1)
+	      	 {
+	      	   world.turnRight();
+	      	   
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 2)
+	      	 {
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 3)
+	      	 {	      	
+	      	   world.moveForward(n,false);
+	      	 }	 
+	     }
+	     else if (direct.image.equals("East"))
+	     {
+	      	 if(world.getFacing() == 0)
+	      	 {
+	      	   	world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 1)
+	      	 {
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.turnRight();
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 2)
+	      	 {	      	
+	      	   world.moveForward(n,false);
+	      	 }
+	      	 else if(world.getFacing() == 3)
+	      	 {
+	      	   world.turnRight();
+	      	   world.turnRight();	      	
+	      	   world.moveForward(n,false);
+	      	 }
+	   		 
+	     }
+	     else
+   		{
+   		  throw new Error("Cardinal direction does not exist!");
+   		}		
+	   }
+	 }
+
+	   
+	void moveToThe()throws Error:{ 	  
+	  int x ;
+	  Token d;
+	  }
+	{
+	  <moveToThe >":" x=num()","d= < VARIABLE > ";"
+	  {
+	    if (d.image.equals("right"))
+	    {
+			world.turnRight();
+			world.moveForward(x, false);
+	    }
+	    else if (d.image.equals("left"))
+	    {
+			world.turnRight();
+			world.turnRight();
+			world.turnRight();
+			world.moveForward(x, false);
+	    }
+	    else if (d.image.equals("back"))
+	    {
+			world.turnRight();
+			world.turnRight();
+			world.moveForward(x , false);
+	    }
+
+		else if (d.image.equals("front"))
+	    {
+			world.moveForward(x, false);
+	  	}
+	  	else
+	  	{
+	  	  	throw new Error("Orientation does not exist!");
+	  	}
+	  	
+	  }
+	 
+	}
+	
+	         
 
     int num() throws Error:
      {
@@ -190,42 +491,5 @@ TOKEN :
 		    }
 		  return total;
 		}
-       } 
-
-
-	void moveToThe()
-	{
-	  int x = 1
-	  TOKEN d;
-	}
-	{
-	  <moveToThe>":" x=num()","d= < VARIABLE > ;
-	  {
-	    if (d.image.equals("right"))
-	    {
-			world.turnRight();
-			world.moveForward(x);
-	    }
-	    else if (d.image.equals("left"))
-	    {
-			world.turnRight();
-			world.turnRight();
-			world.turnRight();
-			world.moveForward(x);
-	    }
-	    else if (d.image.equals("back"))
-	    {
-			world.turnRight();
-			world.turnRight();
-			world.moveForward(x);
-	    }
-
-		else if (d.image.equals("front"))
-	    {
-			world.moveForward(x);
-	    }
-	  }
-	}
-	
-	  
+       }
 		
