@@ -164,6 +164,7 @@ TOKEN :
 		| not()*
 		*/ 
     }
+    
     void goto1():
     { int x,y ;}
     {
